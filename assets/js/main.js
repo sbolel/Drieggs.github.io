@@ -5,146 +5,159 @@
 */
 
 (function($) {
+  var settings = {
+    // Parallax background effect?
+    parallax: true,
 
-	var settings = {
+    // Parallax factor (lower = more intense, higher = less intense).
+    parallaxFactor: 20
+  };
 
-		// Parallax background effect?
-			parallax: true,
+  skel.breakpoints({
+    xlarge: '(max-width: 1800px)',
+    large: '(max-width: 1280px)',
+    medium: '(max-width: 980px)',
+    small: '(max-width: 736px)',
+    xsmall: '(max-width: 480px)'
+  });
 
-		// Parallax factor (lower = more intense, higher = less intense).
-			parallaxFactor: 20
+  $(function() {
+    var $window = $(window),
+      $body = $('body'),
+      $header = $('#header');
 
-	};
+    // Disable animations/transitions until the page has loaded.
+    $body.addClass('is-loading');
 
-	skel.breakpoints({
-		xlarge: '(max-width: 1800px)',
-		large: '(max-width: 1280px)',
-		medium: '(max-width: 980px)',
-		small: '(max-width: 736px)',
-		xsmall: '(max-width: 480px)'
-	});
+    $window.on('load', function() {
+      $body.removeClass('is-loading');
+    });
 
-	$(function() {
+    // Touch?
+    if (skel.vars.mobile) {
 
-		var $window = $(window),
-			$body = $('body'),
-			$header = $('#header');
+      // Turn on touch mode.
+      $body.addClass('is-touch');
 
-		// Disable animations/transitions until the page has loaded.
-			$body.addClass('is-loading');
+      // Height fix (mostly for iOS).
+      window.setTimeout(function() {
+        $window.scrollTop($window.scrollTop() + 1);
+      }, 0);
 
-			$window.on('load', function() {
-				$body.removeClass('is-loading');
-			});
+    }
 
-		// Touch?
-			if (skel.vars.mobile) {
+    // Fix: Placeholder polyfill.
+    $('form').placeholder();
 
-				// Turn on touch mode.
-					$body.addClass('is-touch');
+    // Prioritize "important" elements on medium.
+    skel.on('+medium -medium', function() {
+      $.prioritize(
+        '.important\\28 medium\\29',
+        skel.breakpoint('medium').active
+      );
+    });
 
-				// Height fix (mostly for iOS).
-					window.setTimeout(function() {
-						$window.scrollTop($window.scrollTop() + 1);
-					}, 0);
+    // Header.
 
-			}
+    // Parallax background.
 
-		// Fix: Placeholder polyfill.
-			$('form').placeholder();
+    // Disable parallax on IE (smooth scrolling is jerky), and on mobile platforms (= better performance).
+    if (skel.vars.browser == 'ie' ||
+      skel.vars.mobile)
+      settings.parallax = false;
 
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
-				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
-				);
-			});
+    if (settings.parallax) {
 
-		// Header.
+      skel.on('change', function() {
 
-			// Parallax background.
+        if (skel.breakpoint('medium').active) {
 
-				// Disable parallax on IE (smooth scrolling is jerky), and on mobile platforms (= better performance).
-					if (skel.vars.browser == 'ie'
-					||	skel.vars.mobile)
-						settings.parallax = false;
+          $window.off('scroll.strata_parallax');
+          $header.css('background-position', 'top left, center center');
 
-				if (settings.parallax) {
+        } else {
 
-					skel.on('change', function() {
+          $header.css('background-position', 'left 0px');
 
-						if (skel.breakpoint('medium').active) {
+          $window.on('scroll.strata_parallax', function() {
+            $header.css('background-position', 'left ' + (-1 * (parseInt($window.scrollTop()) / settings.parallaxFactor)) + 'px');
+          });
 
-							$window.off('scroll.strata_parallax');
-							$header.css('background-position', 'top left, center center');
+        }
 
-						}
-						else {
+      });
 
-							$header.css('background-position', 'left 0px');
+    }
 
-							$window.on('scroll.strata_parallax', function() {
-								$header.css('background-position', 'left ' + (-1 * (parseInt($window.scrollTop()) / settings.parallaxFactor)) + 'px');
-							});
+    // Main Sections: Two.
 
-						}
+    // Lightbox gallery.
+    $window.on('load', function() {
 
-					});
+      $('#two').poptrox({
+        caption: function($a) {
+          return $a.next('h3').text();
+        },
+        overlayColor: '#2c2c2c',
+        overlayOpacity: 0.85,
+        popupCloserText: '',
+        popupLoaderText: '',
+        selector: 'a.image',
+        usePopupCaption: true,
+        usePopupDefaultStyling: false,
+        usePopupEasyClose: true,
+        usePopupNav: true,
+        windowMargin: (skel.breakpoint('small').active ? 0 : 50)
+      });
 
-				}
+    });
 
-		// Main Sections: Two.
+		function locationHashChanged() {
+	    if (!location.hash) {
+	    	$('#snippet').load('snippets/home.html');
+	    }
+		}
 
-			// Lightbox gallery.
-				$window.on('load', function() {
+		window.onhashchange = locationHashChanged;
 
-					$('#two').poptrox({
-						caption: function($a) { return $a.next('h3').text(); },
-						overlayColor: '#2c2c2c',
-						overlayOpacity: 0.85,
-						popupCloserText: '',
-						popupLoaderText: '',
-						selector: 'a.image',
-						usePopupCaption: true,
-						usePopupDefaultStyling: false,
-						usePopupEasyClose: true,
-						usePopupNav: true,
-						windowMargin: (skel.breakpoint('small').active ? 0 : 50)
-					});
-
-				});
-
-			//Keyman Toggle		
-				$('#skmBtn').click(function() {
-				  $('#snippet').load('snippets/skm.html');
-				  $('html, body').animate({
-						scrollTop: $("#main").offset().top
-					}, 0);				  				  
-				});
-				$('#sadoBtn').click(function() {
-				  $('#snippet').load('snippets/sado.html');
-				  $('html, body').animate({
-						scrollTop: $("#main").offset().top
-					}, 0);				  
-				});
-				$('#keymanBtn').click(function() {
-				  $('#snippet').load('snippets/keyman.html');
-				  $('html, body').animate({
-						scrollTop: $("#main").offset().top
-					}, 0);
-				});
-				$('#olliBtn').click(function() {
-				  $('#snippet').load('snippets/olli.html');
-				  $('html, body').animate({
-						scrollTop: $("#main").offset().top
-					}, 0);				  
-				});
-				$( document).ready(function() {
-							$('html, body').animate({
-							scrollTop: $("#main").offset().top
-							}, 200);
-				});			
-	});
+    //Keyman Toggle
+    $('#skmBtn').click(function() {
+      $('#snippet').load('snippets/skm.html', function() {
+        window.location.hash = 'skm';
+      });
+      $('html, body').animate({
+        scrollTop: $("#main").offset().top
+      }, 0);
+    });
+    $('#sadoBtn').click(function() {
+      $('#snippet').load('snippets/sado.html', function() {
+        window.location.hash = 'sado';
+      });
+      $('html, body').animate({
+        scrollTop: $("#main").offset().top
+      }, 0);
+    });
+    $('#keymanBtn').click(function() {
+      $('#snippet').load('snippets/keyman.html', function() {
+        window.location.hash = 'keyman';
+      });
+      $('html, body').animate({
+        scrollTop: $("#main").offset().top
+      }, 0);
+    });
+    $('#olliBtn').click(function() {
+      $('#snippet').load('snippets/olli.html', function() {
+        window.location.hash = 'olli';
+      });
+      $('html, body').animate({
+        scrollTop: $("#main").offset().top
+      }, 0);
+    });
+    $(document).ready(function() {
+      $('html, body').animate({
+        scrollTop: $("#main").offset().top
+      }, 200);
+    });
+  });
 
 })(jQuery);
